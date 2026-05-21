@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: chuanyu_finance
+      POSTGRES_USER: chuanyu
+      POSTGRES_PASSWORD: chuanyu_dev_pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./db/seed_companies.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chuanyu -d chuanyu_finance"]
+      interval: 5s
+      retries: 5
+
+  crawler:
+    build: ./crawler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=postgres
+    env_file:
+      - .env
+    volumes:
+      - ./crawler:/app/crawler
+      - ./shared:/app/shared
+
+  scheduler:
+    build: ./scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./scheduler:/app/scheduler
+      - ./shared:/app/shared
+
+  analyzer:
+    build: ./analyzer
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./analyzer:/app/analyzer
+      - ./shared:/app/shared
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./dashboard:/app/dashboard
+      - ./shared:/app/shared
+
+volumes:
+  pgdata:
