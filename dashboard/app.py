@@ -1,4 +1,6 @@
 import streamlit as st
+from dashboard.pages.overview import show as overview_show
+from dashboard.pages.company import show as company_show
 
 st.set_page_config(
     page_title="川渝金融舆情分析",
@@ -8,8 +10,8 @@ st.set_page_config(
 
 pg = st.navigation({
     "川渝金融舆情": [
-        st.Page("pages/overview.py", title="市场总览", default=True),
-        st.Page("pages/company.py", title="公司详情"),
+        st.Page(overview_show, title="市场总览", default=True),
+        st.Page(company_show, title="公司详情"),
     ],
 })
 pg.run()
