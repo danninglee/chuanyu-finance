@@ -1,6 +1,5 @@
 import json
 import scrapy
-import httpx
 from datetime import datetime
 from crawler.dedup import compute_simhash
 
@@ -8,18 +7,28 @@ from crawler.dedup import compute_simhash
 JUCHAO_API = "http://www.cninfo.com.cn/new/disclosure"
 
 
+def _get_column(code: str) -> str:
+    """Map stock code prefix to Juchao disclosure column."""
+    if code.startswith("300"):
+        return "szse_gem"
+    if code.startswith("002"):
+        return "szse_sme"
+    if code.startswith("000"):
+        return "szse_main"
+    if code.startswith("688"):
+        return "kcb"
+    return "shmb"
+
+
 class JuchaoSpider(scrapy.Spider):
     name = "juchao"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.client = httpx.Client(timeout=30)
 
     def start_requests(self):
         codes = self._get_chuanyu_codes()
         for code in codes:
+            column = _get_column(code)
             params = {
-                "column": "szse_gem",
+                "column": column,
                 "stock": code,
                 "pageNum": "1",
                 "pageSize": "10",
@@ -35,7 +44,6 @@ class JuchaoSpider(scrapy.Spider):
             )
 
     def _get_chuanyu_codes(self) -> list[str]:
-        """Reuse the same board-based code fetching."""
         from crawler.spiders.eastmoney import EastmoneySpider
         spider = EastmoneySpider()
         codes = spider._get_sichuan_chongqing_codes()
@@ -75,5 +83,3 @@ class JuchaoSpider(scrapy.Spider):
                 "simhash": compute_simhash(title, ""),
             }
 
-    def closed(self, reason):
-        self.client.close()

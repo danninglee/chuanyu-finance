@@ -40,18 +40,8 @@ services:
     volumes:
       - ./scheduler:/app/scheduler
       - ./shared:/app/shared
-
-  analyzer:
-    build: ./analyzer
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    volumes:
       - ./analyzer:/app/analyzer
-      - ./shared:/app/shared
+      - ./crawler:/app/crawler
 
   dashboard:
     build: ./dashboard

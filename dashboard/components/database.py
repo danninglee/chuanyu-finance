@@ -11,15 +11,24 @@ def get_connection():
 
 def get_today_summary(region: str | None = None) -> dict:
     conn = get_connection()
-    region_filter = f"AND region = '{region}'" if region else ""
-    query = f"""
-        SELECT total_news_count, positive_ratio, negative_ratio, avg_sentiment,
-               buy_signal_count, sell_signal_count, top_news_ids
-        FROM market_snapshots
-        WHERE date = CURRENT_DATE {region_filter}
-        ORDER BY date DESC LIMIT 1
-    """
-    df = pd.read_sql(query, conn)
+    if region:
+        query = """
+            SELECT total_news_count, positive_ratio, negative_ratio, avg_sentiment,
+                   buy_signal_count, sell_signal_count, top_news_ids
+            FROM market_snapshots
+            WHERE date = CURRENT_DATE AND region = %s
+            ORDER BY date DESC LIMIT 1
+        """
+        df = pd.read_sql(query, conn, params=(region,))
+    else:
+        query = """
+            SELECT total_news_count, positive_ratio, negative_ratio, avg_sentiment,
+                   buy_signal_count, sell_signal_count, top_news_ids
+            FROM market_snapshots
+            WHERE date = CURRENT_DATE
+            ORDER BY date DESC LIMIT 1
+        """
+        df = pd.read_sql(query, conn)
     conn.close()
     if df.empty:
         return {

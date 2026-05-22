@@ -14,14 +14,15 @@ def cleanup_old_data():
             "DELETE FROM news WHERE publish_time < NOW() - INTERVAL '%s days'",
             (str(settings.news_retention_days),),
         )
+        deleted_news = cur.rowcount
         cur.execute(
             "DELETE FROM policies WHERE publish_time < NOW() - INTERVAL '%s days'",
             (str(settings.policy_retention_days),),
         )
-        deleted_news = cur.rowcount
+        deleted_policies = cur.rowcount
     conn.commit()
     conn.close()
-    print(f"Cleanup: removed old news and policies. News deletions: {deleted_news}")
+    print(f"Cleanup: removed {deleted_news} news items and {deleted_policies} policies.")
 
 
 def compute_market_snapshot():

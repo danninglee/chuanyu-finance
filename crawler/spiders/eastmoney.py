@@ -1,11 +1,10 @@
 import json
 import scrapy
 import httpx
-from datetime import datetime, timedelta
+from datetime import datetime
 from crawler.dedup import compute_simhash
 
 
-EASTMONEY_NEWS_API = "https://push2ex.eastmoney.com/getStockFenShi"
 EASTMONEY_LIST_API = "https://push2.eastmoney.com/api/qt/clist/get"
 
 
@@ -19,9 +18,10 @@ class EastmoneySpider(scrapy.Spider):
     def start_requests(self):
         codes = self._get_sichuan_chongqing_codes()
         for code in codes:
+            market_code = self._add_market_prefix(code)
             url = (
                 f"https://np-anotice-stock.eastmoney.com/api/security/ann?"
-                f"stock_list={code}&page_size=20&page_index=1"
+                f"stock_list={market_code}&page_size=20&page_index=1"
             )
             yield scrapy.Request(
                 url,
@@ -29,6 +29,15 @@ class EastmoneySpider(scrapy.Spider):
                 meta={"code": code},
                 headers={"Referer": "https://guba.eastmoney.com/"},
             )
+
+    @staticmethod
+    def _add_market_prefix(code: str) -> str:
+        """Eastmoney API requires market prefix: 0 for SZ, 1 for SH."""
+        if code.startswith(("0", "3")):
+            return f"0.{code}"
+        if code.startswith("6"):
+            return f"1.{code}"
+        return code
 
     def _get_sichuan_chongqing_codes(self) -> list[str]:
         """Fetch stock codes for Sichuan and Chongqing boards."""
@@ -52,7 +61,7 @@ class EastmoneySpider(scrapy.Spider):
                 if data.get("data") and data["data"].get("diff"):
                     for item in data["data"]["diff"]:
                         code = item.get("f12", "")
-                        if code and (code.startswith("0") or code.startswith("3") or code.startswith("6")):
+                        if code and (code.startswith(("0", "3", "6"))):
                             codes.append(code)
             except Exception as e:
                 self.logger.error(f"Failed to fetch codes for {bk_code}: {e}")
