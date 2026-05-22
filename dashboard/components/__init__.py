@@ -1,0 +1,1 @@
+"""Dashboard component modules: data access layer for Streamlit pages."""
