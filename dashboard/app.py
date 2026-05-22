@@ -10,8 +10,8 @@ st.set_page_config(
 
 pg = st.navigation({
     "川渝金融舆情": [
-        st.Page(overview_show, title="市场总览", default=True),
-        st.Page(company_show, title="公司详情"),
+        st.Page(overview_show, title="市场总览", url_path="overview", default=True),
+        st.Page(company_show, title="公司详情", url_path="company"),
     ],
 })
 pg.run()
