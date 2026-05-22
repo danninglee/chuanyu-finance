@@ -1,8 +1,7 @@
-version: "3.8"
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
+    restart: unless-stopped
     environment:
       POSTGRES_DB: chuanyu_finance
       POSTGRES_USER: chuanyu
@@ -20,11 +19,10 @@ services:
 
   crawler:
     build: ./crawler
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      - POSTGRES_HOST=postgres
     env_file:
       - .env
     volumes:
@@ -33,6 +31,7 @@ services:
 
   scheduler:
     build: ./scheduler
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,6 +43,7 @@ services:
 
   analyzer:
     build: ./analyzer
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +55,7 @@ services:
 
   dashboard:
     build: ./dashboard
+    restart: unless-stopped
     ports:
       - "8501:8501"
     depends_on:
