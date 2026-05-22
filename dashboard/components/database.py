@@ -44,13 +44,13 @@ def get_today_summary(region: str | None = None) -> dict:
 
 def get_sentiment_trend(days: int = 7) -> pd.DataFrame:
     conn = get_connection()
-    query = """
+    query = f"""
         SELECT date, region, avg_sentiment
         FROM market_snapshots
-        WHERE date >= CURRENT_DATE - INTERVAL '%s days'
+        WHERE date >= CURRENT_DATE - INTERVAL '{days} days'
         ORDER BY date ASC
     """
-    df = pd.read_sql(query, conn, params=(str(days),))
+    df = pd.read_sql(query, conn)
     conn.close()
     return df
 
@@ -95,30 +95,30 @@ def get_company_list() -> pd.DataFrame:
 
 def get_company_sentiment_trend(company_id: int, days: int = 30) -> pd.DataFrame:
     conn = get_connection()
-    query = """
+    query = f"""
         SELECT publish_time::date AS date, sentiment_label,
                COUNT(*) AS count, AVG(sentiment_score) AS avg_score
         FROM news
-        WHERE company_id = %s AND publish_time >= CURRENT_DATE - INTERVAL '%s days'
+        WHERE company_id = %s AND publish_time >= CURRENT_DATE - INTERVAL '{days} days'
         GROUP BY publish_time::date, sentiment_label
         ORDER BY date ASC
     """
-    df = pd.read_sql(query, conn, params=(company_id, str(days)))
+    df = pd.read_sql(query, conn, params=(company_id,))
     conn.close()
     return df
 
 
 def get_company_news(company_id: int, days: int = 7) -> pd.DataFrame:
     conn = get_connection()
-    query = """
+    query = f"""
         SELECT id, title, content, summary, sentiment_label, trading_signal,
                confidence, publish_time, source
         FROM news
-        WHERE company_id = %s AND publish_time >= CURRENT_DATE - INTERVAL '%s days'
+        WHERE company_id = %s AND publish_time >= CURRENT_DATE - INTERVAL '{days} days'
         ORDER BY publish_time DESC
         LIMIT 50
     """
-    df = pd.read_sql(query, conn, params=(company_id, str(days)))
+    df = pd.read_sql(query, conn, params=(company_id,))
     conn.close()
     return df
 
