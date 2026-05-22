@@ -33,7 +33,7 @@ class EastmoneySpider(scrapy.Spider):
     def _get_sichuan_chongqing_codes(self) -> list[str]:
         """Fetch stock codes for Sichuan and Chongqing boards."""
         codes = []
-        for bk_code in ["BK0493", "BK0494"]:
+        for bk_code in ["BK0169", "BK0170"]:
             params = {
                 "pn": "1",
                 "pz": "300",
